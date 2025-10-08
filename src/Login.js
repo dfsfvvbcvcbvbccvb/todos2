@@ -1,13 +1,16 @@
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import {useFetcher} from 'react-router-dom'
 
 export default function Register() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [errorEmail, setErrorEmail] = useState('')
+    const [errorPassword, setErrorPassword] = useState('')
     const fetcher = useFetcher()
 
     const handleFormSubmit = evt => {
         evt.preventDefault()
+        if (validate())
         fetcher.submit({email, password},
                 {action: '/login', method: 'post'})
     }
@@ -15,6 +18,37 @@ export default function Register() {
         setEmail('')
         setPassword('')
     }
+
+            useEffect(() => {
+                console.log("fetcher.data:", fetcher.data)
+                if (!fetcher.data) return
+                resetErrorMessages()
+                if (fetcher.data === 'auth/user-not-found') {
+                setErrorEmail('Пользователь не найден')
+                } else if (fetcher.data === 'auth/invalid-credential') {
+                setErrorPassword('Неверный пароль')
+                }
+            }, [fetcher.data])
+
+    const resetErrorMessages = () => {
+        setErrorEmail('')
+        setErrorPassword('')
+    }
+
+    const validate = () => {
+        resetErrorMessages()
+        if (!email) {
+            setErrorEmail('Адрес электронной почты не указан')
+            return false
+        }
+        if (!password) {
+            setErrorPassword('Пароль не указан')
+            return false
+        }
+        return true
+    }
+
+
     return (
         <section>
             <h1>Логин</h1>
@@ -24,6 +58,11 @@ export default function Register() {
                     <div className='control'>
                         <input type='email' value={email} className='input' onChange={e => setEmail(e.target.value)}/>
                     </div>
+                    {errorEmail &&
+                    <p className='help is-danger'>
+                        {errorEmail}
+                    </p>
+                    }
                 </div>
                 <div className='field'>
                     <label className='label'>Пароль</label>
@@ -31,6 +70,11 @@ export default function Register() {
                         <input type='password' value={password} className="input"
                         onChange={e => setPassword(e.target.value)}/>
                     </div>
+                    {errorPassword &&
+                    <p className='help is-danger'>
+                        {errorPassword}
+                    </p>
+                    }
                 </div>
                 <div>
                     <div className='control'>
